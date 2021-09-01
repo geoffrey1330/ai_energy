@@ -28,9 +28,9 @@ model_3 = './models/model_pump_section_02.hdf5'
 
 
 # Response from request
-#machine_type = "pump"
+
 section_idx = 0
-#section_name = f"section_0{section_idx}"
+
 file_path = "./models/section_00_source_test_anomaly_0000.wav"
 
 # constants
@@ -72,7 +72,7 @@ def file_to_vectors(file_path,
                                                      hop_length=hop_length,
                                                      n_mels=n_mels,
                                                      power=power)
-    print("goat")
+
     # convert melspectrogram to log mel energies
     log_mel_spectrogram = 20.0 / power * \
         np.log10(np.maximum(mel_spectrogram, sys.float_info.epsilon))
@@ -126,15 +126,6 @@ def pump1(request):
 
     decision_result = predictor(data, model)
 
-    # y_pred = np.mean(np.square(data - p))
-    # if y_pred > decision_threshold:
-    #     print("it's 1")
-    #     decision_result = 1  # [os.path.basename(file_path), 1]
-    # else:
-    #     print("it's 0")
-    #     decision_result = 0  # [os.path.basename(file_path), 0]
-    # # print(decision_result)
-
     if request.method == 'GET':
        #data = JSONParser().parse(request)
         data = {"category": decision_result}
@@ -167,15 +158,6 @@ def pump2(request):
 
     decision_result = predictor(data, model)
 
-    # y_pred = np.mean(np.square(data - p))
-    # if y_pred > decision_threshold:
-    #     print("it's 1")
-    #     decision_result = 1  # [os.path.basename(file_path), 1]
-    # else:
-    #     print("it's 0")
-    #     decision_result = 0  # [os.path.basename(file_path), 0]
-    # # print(decision_result)
-
     if request.method == 'GET':
        #data = JSONParser().parse(request)
         data = {"category": decision_result}
@@ -189,12 +171,6 @@ def pump2(request):
 @api_view(['GET', 'POST'])
 def pump3(request):
 
-    # if request.method == 'GET':
-    #     transformer = Classifier.objects.all()
-    #     serializer = PumpSerializer(transformer, many=True)
-    #     return JsonResponse(serializer.data, safe=False)
-
-    # extract data
     data = file_to_vectors(file_path,
                            n_mels=n_mels,
                            n_frames=n_frames,
@@ -207,15 +183,6 @@ def pump3(request):
 # make prediction
 
     decision_result = predictor(data, model)
-
-    # y_pred = np.mean(np.square(data - p))
-    # if y_pred > decision_threshold:
-    #     print("it's 1")
-    #     decision_result = 1  # [os.path.basename(file_path), 1]
-    # else:
-    #     print("it's 0")
-    #     decision_result = 0  # [os.path.basename(file_path), 0]
-    # # print(decision_result)
 
     if request.method == 'GET':
        #data = JSONParser().parse(request)

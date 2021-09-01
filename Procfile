@@ -1,0 +1,1 @@
+ echo web: gunicorn ai_energy.wsgi --log-file - >Procfile
