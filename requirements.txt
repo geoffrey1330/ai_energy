@@ -16,3 +16,4 @@ numpy==1.19.2
 joblib==1.0.1
 scipy==1.2.1
 librosa==0.8.1
+pysndfile==1.4.3
