@@ -96,10 +96,10 @@ def predictor(data, model):
 
     y_pred = np.mean(np.square(data - p))
     if y_pred > decision_threshold:
-        print("it's 1")
+
         decision_result = 1  # [os.path.basename(file_path), 1]
     else:
-        print("it's 0")
+
         decision_result = 0
     return decision_result
 
@@ -128,7 +128,7 @@ def pump1(request):
 
     if request.method == 'GET':
        #data = JSONParser().parse(request)
-        data = {"category": decision_result}
+        data = {"category": int(decision_result)}
         serializer = PumpSerializer(data=data)
         if serializer.is_valid():
             # serializer.save()
@@ -160,7 +160,7 @@ def pump2(request):
 
     if request.method == 'GET':
        #data = JSONParser().parse(request)
-        data = {"category": decision_result}
+        data = {"category": int(decision_result)}
         serializer = PumpSerializer(data=data)
         if serializer.is_valid():
             # serializer.save()
@@ -186,7 +186,7 @@ def pump3(request):
 
     if request.method == 'GET':
        #data = JSONParser().parse(request)
-        data = {"category": decision_result}
+        data = {"category": int(decision_result)}
         serializer = PumpSerializer(data=data)
         if serializer.is_valid():
             # serializer.save()
