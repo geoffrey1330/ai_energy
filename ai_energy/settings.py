@@ -25,7 +25,7 @@ SECRET_KEY = '^+^rfchn%i8bkc27&-if(zareequ*$7c0m2hi4i5h5t#59d4(5'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'altcarbon.herokuapp.com']
 #'127.0.0.1', 'localhost', 'altcarbon.herokuapp.com'
 
 # Application definition
@@ -133,9 +133,10 @@ AUTH_USER_MODEL = 'users.User'
 
 CORS_ALLOW_CREDENTIALS = True
 
+CORS_ORIGIN_ALLOW_ALL = True
 
-CORS_ALLOWED_ORIGINS = ['http://localhost:3000']
-CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
+#CORS_ALLOWED_ORIGINS = ['http://localhost:3000']
+#CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
