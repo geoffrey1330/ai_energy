@@ -12,7 +12,7 @@ from .models import User
 
 @api_view(['POST'])
 def login_user(request: Request) -> Response:
-    
+
     if request.user.is_authenticated:
         return Response(status=s.HTTP_400_BAD_REQUEST)
 
@@ -20,9 +20,10 @@ def login_user(request: Request) -> Response:
     if serializer.is_valid(raise_exception=True):
         user = authenticate(request, username=serializer.validated_data['username'],
                             password=serializer.validated_data['password'])
-        
+
         if user:
             login(request, user)
+            print("logged in user")
             return Response(UserSerializer(instance=user).data)
 
         return Response({'err': 'Invalid credentials'}, status=s.HTTP_403_FORBIDDEN)

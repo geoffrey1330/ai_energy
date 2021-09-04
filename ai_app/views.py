@@ -127,7 +127,7 @@ def pump1(request):
     decision_result = predictor(data, model)
 
     if request.method == 'GET':
-       #data = JSONParser().parse(request)
+
         data = {"category": int(decision_result)}
         serializer = PumpSerializer(data=data)
         if serializer.is_valid():
