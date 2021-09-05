@@ -192,3 +192,16 @@ def pump3(request):
             # serializer.save()
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
+
+
+@api_view(['GET', 'POST'])
+def pump1_upload(request):
+    if request.method == 'POST':
+
+        Classifier.objects.create(
+            pump1_file=request.FILES('pump1_audio')
+            
+        )
+        return Response('pupm1 file was uploaded')
+
+    return Response('error uploading pump1 file')
