@@ -1,5 +1,6 @@
 import scipy.stats
 from tensorflow.keras.models import load_model
+import tensorflow as tf
 import numpy as np
 import joblib
 import sys
@@ -14,6 +15,9 @@ from rest_framework.decorators import api_view
 from .models import Classifier
 from .serializers import PumpSerializer
 from django.conf import settings
+
+from .cloud_client import *
+
 
 model_1 = './models/model_pump_section_00.hdf5'
 model_2 = './models/model_pump_section_01.hdf5'
@@ -44,6 +48,49 @@ n_hop_frames = 8
 n_fft = 10
 hop_length = 512
 power = 2.0
+############################################################################
+
+
+section_idx1 = 0
+section_idx2 = 1
+section_idx3 = 2
+machine_type = "pump"
+pump_container1 = f"{machine_type}-section-0{section_idx1}"
+#file_path1 = download_file(pump_container1)
+
+pump_container2 = f"{machine_type}-section-0{section_idx2}"
+#file_path2 = download_file(pump_container2)
+
+pump_container3 = f"{machine_type}-section-0{section_idx3}"
+#file_path3 = download_file(pump_container3)
+
+section_name = f"section_{section_idx}"
+
+
+# constants
+SAMPLE_RATE = 22050
+
+model_dir = f"Models/MLP_Autoencoder/{machine_type}"
+
+# load anomaly score distribution for determining threshold
+#score_distr_file_path = f"{model_dir}/score_distr_{machine_type}_{section_name}.pkl"
+score_distr_file_path1 = "./models/score_distr_pump_section_00.pkl"
+score_distr_file_path2 = "./models/score_distr_pump_section_01.pkl"
+score_distr_file_path3 = "./models/score_distr_pump_section_02.pkl"
+
+shape_hat1, loc_hat1, scale_hat1 = joblib.load(score_distr_file_path1)
+shape_hat2, loc_hat2, scale_hat2 = joblib.load(score_distr_file_path2)
+shape_hat3, loc_hat3, scale_hat3 = joblib.load(score_distr_file_path3)
+
+decision_threshold = {0: 0.999998768, 1: 0.57764, 2: 0.567035}
+decision_threshold1 = scipy.stats.gamma.ppf(
+    q=decision_threshold[section_idx], a=shape_hat1, loc=loc_hat1, scale=scale_hat1)
+decision_threshold2 = scipy.stats.gamma.ppf(
+    q=decision_threshold[section_idx], a=shape_hat2, loc=loc_hat2, scale=scale_hat2)
+
+decision_threshold3 = scipy.stats.gamma.ppf(
+    q=decision_threshold[section_idx], a=shape_hat3, loc=loc_hat3, scale=scale_hat3)
+############################################################################
 
 
 def file_to_vectors(file_path,
@@ -64,7 +111,6 @@ def file_to_vectors(file_path,
     dims = n_mels * n_frames
 
     # generate melspectrogram using librosa
-
     signal, sr = librosa.load(file_path, sr=None, mono=True)
     mel_spectrogram = librosa.feature.melspectrogram(y=signal,
                                                      sr=sr,
@@ -87,11 +133,27 @@ def file_to_vectors(file_path,
     for t in range(n_frames):
         vectors[:, n_mels * t: n_mels *
                 (t + 1)] = log_mel_spectrogram[:, t: t + n_vectors].T
-
+    # delete audio file
+    os.remove(file_path)
     return vectors
 
 
-def predictor(data, model):
+def predictor(data, model, decision_threshold):
+
+    ##################################
+    data_norm = tf.keras.utils.normalize(data)
+
+    p = model.predict(data_norm)
+
+    y_pred = np.mean(np.square(data_norm - p))
+    print(str(y_pred) + "goat")
+
+    # if y_pred > decision_threshold:
+    #     decision_result = 1
+    # else:
+    #     decision_result = 0
+
+    #####################################
     p = model.predict(data)
 
     y_pred = np.mean(np.square(data - p))
@@ -99,7 +161,7 @@ def predictor(data, model):
 
         decision_result = 1  # [os.path.basename(file_path), 1]
     else:
-
+        #decision_result = 1
         decision_result = 0
     return decision_result
 
@@ -113,7 +175,9 @@ def pump1(request):
     #     return JsonResponse(serializer.data, safe=False)
 
     # extract data
-    data = file_to_vectors(file_path,
+    file_path1 = download_file(pump_container1)
+
+    data = file_to_vectors(file_path1,
                            n_mels=n_mels,
                            n_frames=n_frames,
                            n_fft=n_fft,
@@ -124,7 +188,7 @@ def pump1(request):
 
 # make prediction
 
-    decision_result = predictor(data, model)
+    decision_result = predictor(data, model, decision_threshold1)
 
     if request.method == 'GET':
 
@@ -145,7 +209,8 @@ def pump2(request):
     #     return JsonResponse(serializer.data, safe=False)
 
     # extract data
-    data = file_to_vectors(file_path,
+    file_path2 = download_file(pump_container2)
+    data = file_to_vectors(file_path2,
                            n_mels=n_mels,
                            n_frames=n_frames,
                            n_fft=n_fft,
@@ -156,7 +221,7 @@ def pump2(request):
 
 # make prediction
 
-    decision_result = predictor(data, model)
+    decision_result = predictor(data, model, decision_threshold2)
 
     if request.method == 'GET':
        #data = JSONParser().parse(request)
@@ -170,8 +235,8 @@ def pump2(request):
 
 @api_view(['GET', 'POST'])
 def pump3(request):
-
-    data = file_to_vectors(file_path,
+    file_path3 = download_file(pump_container3)
+    data = file_to_vectors(file_path3,
                            n_mels=n_mels,
                            n_frames=n_frames,
                            n_fft=n_fft,
@@ -182,7 +247,7 @@ def pump3(request):
 
 # make prediction
 
-    decision_result = predictor(data, model)
+    decision_result = predictor(data, model, decision_threshold3)
 
     if request.method == 'GET':
        #data = JSONParser().parse(request)
@@ -192,16 +257,3 @@ def pump3(request):
             # serializer.save()
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
-
-
-@api_view(['GET', 'POST'])
-def pump1_upload(request):
-    if request.method == 'POST':
-
-        Classifier.objects.create(
-            pump1_file=request.FILES('pump1_audio')
-            
-        )
-        return Response('pupm1 file was uploaded')
-
-    return Response('error uploading pump1 file')

@@ -7,7 +7,4 @@ urlpatterns = [
     path('pump2/', views.pump2),
     path('pump3/', views.pump3),
 
-
-    path("pump1_upload/", views.pump1_upload),
-
 ]
